@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pickit - Smart Shopping List</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple-light: #EEEDFE; --purple-mid: #7F77DD; --purple-dark: #3C3489;
+    --teal: #1D9E75; --red: #E24B4A; --red-light: #FCEBEB;
+    --bg: #f5f5f3; --surface: #ffffff; --border: rgba(0,0,0,0.12);
+    --text: #1a1a1a; --text-muted: #666; --text-hint: #999;
+    --radius-md: 8px; --radius-lg: 12px; --radius-xl: 20px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 1.5rem 1rem; }
+  .app { max-width: 520px; margin: 0 auto; }
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header .sub { font-size: 13px; color: var(--text-muted); }
+  .error-banner { background: var(--red-light); border: 1px solid #F09595; border-radius: var(--radius-md); padding: 10px 14px; font-size: 13px; color: #A32D2D; margin-bottom: 1rem; display: none; }
+  .lists-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem; }
+  .list-pill { padding: 6px 16px; border-radius: var(--radius-xl); border: 1px solid var(--border); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all 0.15s; }
+  .list-pill.active { background: var(--purple-light); border-color: #AFA9EC; color: var(--purple-dark); font-weight: 500; }
+  .list-pill:hover:not(.active) { background: #f0f0f0; }
+  .btn-new { padding: 6px 14px; border-radius: var(--radius-xl); border: 1px dashed var(--border); font-size: 13px; cursor: pointer; background: transparent; color: var(--text-hint); }
+  .btn-new:hover { border-style: solid; color: var(--text-muted); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .search-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; background: #fafafa; color: var(--text); outline: none; transition: border 0.15s; }
+  .search-input:focus { border-color: var(--purple-mid); background: white; }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip { padding: 5px 13px; border-radius: var(--radius-xl); background: #f0f0f0; border: 1px solid var(--border); font-size: 13px; cursor: pointer; color: var(--text-muted); transition: all 0.12s; }
+  .chip:hover { background: var(--purple-light); border-color: #AFA9EC; color: var(--purple-dark); }
+  .config-row { display: flex; align-items: center; gap: 10px; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .selected-label { font-size: 14px; font-weight: 500; flex: 1; min-width: 80px; }
+  .qty-row { display: flex; align-items: center; gap: 6px; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: var(--text); line-height: 1; }
+  .qty-btn:hover { background: #f0f0f0; }
+  .qty-val { font-size: 15px; font-weight: 500; min-width: 24px; text-align: center; }
+  .unit-sel { padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: #fafafa; cursor: pointer; }
+  .btn-add { padding: 8px 18px; border-radius: var(--radius-md); background: var(--purple-mid); border: none; color: white; font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; margin-left: auto; }
+  .btn-add:hover { opacity: 0.85; }
+  .btn-add:disabled { opacity: 0.4; cursor: default; }
+  .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .list-title { font-size: 15px; font-weight: 500; }
+  .badge { background: var(--purple-light); color: var(--purple-dark); border-radius: 12px; padding: 2px 9px; font-size: 12px; font-weight: 500; }
+  .progress { height: 3px; background: #e8e8e8; border-radius: 2px; margin-bottom: 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--teal); border-radius: 2px; transition: width 0.3s ease; }
+  .empty { padding: 2rem; text-align: center; color: var(--text-hint); font-size: 14px; line-height: 1.6; }
+  .item { display: flex; align-items: center; gap: 12px; padding: 10px 1.25rem; border-top: 1px solid var(--border); transition: background 0.1s; }
+  .item:hover { background: #fafafa; }
+  .circle { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #ccc; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .circle.done { background: var(--teal); border-color: var(--teal); }
+  .circle.done::after { content: ''; width: 6px; height: 10px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px, -1px); display: block; }
+  .item-info { flex: 1; }
+  .item-name { font-size: 14px; }
+  .item-name.striked { text-decoration: line-through; color: var(--text-hint); }
+  .item-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .del-btn { background: none; border: none; cursor: pointer; color: var(--text-hint); font-size: 16px; padding: 2px 5px; border-radius: 4px; line-height: 1; }
+  .del-btn:hover { color: var(--red); background: var(--red-light); }
+  .loading { opacity: 0.5; pointer-events: none; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1a1a1a; --surface: #242424; --border: rgba(255,255,255,0.12); --text: #f0f0f0; --text-muted: #aaa; --text-hint: #666; }
+    .search-input, .unit-sel { background: #2a2a2a; color: #f0f0f0; }
+    .chip { background: #2a2a2a; color: #aaa; }
+    .qty-btn, .btn-new { background: #2a2a2a; color: #f0f0f0; }
+    .list-pill { background: #2a2a2a; }
+    .progress { background: #333; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <span style="font-size:26px;">🛒</span>
+    <div><h1>Pickit</h1><div class="sub">Smart Shopping List</div></div>
+    <div id="status" style="margin-left:auto;font-size:12px;color:var(--text-hint);"></div>
+  </div>
+
+  <div class="error-banner" id="error-banner"></div>
+
+  <div class="lists-row" id="lists-row"></div>
+
+  <div class="card">
+    <input class="search-input" id="search" type="text" placeholder="Cerca o aggiungi un prodotto..." oninput="onSearch(this.value)" />
+    <div class="suggestions" id="suggestions"></div>
+    <div class="config-row" id="config-row" style="display:none;">
+      <span class="selected-label" id="sel-name"></span>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-val" id="qty-val">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+      <select class="unit-sel" id="unit-sel"></select>
+      <button class="btn-add" onclick="addItem()">Aggiungi</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding: 12px 1.25rem;">
+      <div class="list-header">
+        <span class="list-title" id="list-title">Lista</span>
+        <span class="badge" id="list-count">0</span>
+      </div>
+      <div class="progress"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+    </div>
+    <div id="items-container"><div class="empty">Nessun prodotto.<br>Cercane uno sopra.</div></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8080/api';
+let lists = [];
+let activeListId = null;
+let selected = null;
+let currentQty = 1;
+let allProducts = [];
+
+function showError(msg) {
+  const b = document.getElementById('error-banner');
+  b.textContent = msg;
+  b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 5000);
+}
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+async function apiFetch(path, opts = {}) {
+  try {
+    const res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...opts
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (res.status === 204) return null;
+    return await res.json();
+  } catch (e) {
+    if (e.message.includes('fetch')) {
+      showError('Impossibile contattare il server. Assicurati che Spring Boot sia avviato su porta 8080.');
+    } else {
+      showError('Errore: ' + e.message);
+    }
+    throw e;
+  }
+}
+
+async function loadProducts() {
+  try {
+    allProducts = await apiFetch('/products');
+  } catch (_) { allProducts = []; }
+}
+
+async function loadLists() {
+  try {
+    lists = await apiFetch('/lists');
+    if (lists.length > 0 && !activeListId) activeListId = lists[0].id;
+    renderLists();
+    renderItems();
+    setStatus('Connesso ✓');
+  } catch (_) {
+    setStatus('Offline');
+  }
+}
+
+function renderLists() {
+  const row = document.getElementById('lists-row');
+  row.innerHTML = '';
+  lists.forEach(l => {
+    const pill = document.createElement('button');
+    pill.className = 'list-pill' + (l.id === activeListId ? ' active' : '');
+    pill.textContent = l.name;
+    pill.onclick = () => { activeListId = l.id; renderLists(); renderItems(); };
+    row.appendChild(pill);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'btn-new';
+  btn.textContent = '+ Nuova lista';
+  btn.onclick = async () => {
+    const name = prompt('Nome della nuova lista:');
+    if (!name?.trim()) return;
+    const created = await apiFetch('/lists', { method: 'POST', body: JSON.stringify({ name: name.trim() }) });
+    if (created) { lists.push(created); activeListId = created.id; renderLists(); renderItems(); }
+  };
+  row.appendChild(btn);
+}
+
+function getActiveList() {
+  return lists.find(l => l.id === activeListId);
+}
+
+async function renderItems() {
+  const list = getActiveList();
+  if (!list) return;
+  document.getElementById('list-title').textContent = list.name;
+
+  try {
+    const fullList = await apiFetch('/lists/' + activeListId);
+    const items = fullList.items || [];
+    const total = items.length;
+    const done = items.filter(i => i.done).length;
+    document.getElementById('list-count').textContent = total + (total === 1 ? ' prodotto' : ' prodotti');
+    document.getElementById('progress-bar').style.width = total === 0 ? '0%' : Math.round((done/total)*100) + '%';
+
+    const container = document.getElementById('items-container');
+    if (total === 0) {
+      container.innerHTML = '<div class="empty">Nessun prodotto.<br>Cercane uno sopra.</div>';
+      return;
+    }
+    const sorted = [...items].sort((a,b) => a.done - b.done);
+    container.innerHTML = '';
+    sorted.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <div class="circle ${item.done ? 'done' : ''}" onclick="toggleItem(${item.id})"></div>
+        <div class="item-info">
+          <div class="item-name ${item.done ? 'striked' : ''}">${item.productName}</div>
+          <div class="item-sub">${item.quantity} ${item.unit}${item.categoryName ? ' · ' + item.categoryName : ''}</div>
+        </div>
+        <button class="del-btn" onclick="deleteItem(${item.id})">✕</button>
+      `;
+      container.appendChild(row);
+    });
+  } catch (_) {}
+}
+
+function onSearch(val) {
+  const v = val.trim().toLowerCase();
+  const sugg = document.getElementById('suggestions');
+  const cfg = document.getElementById('config-row');
+  if (!v) { sugg.innerHTML = ''; cfg.style.display = 'none'; selected = null; return; }
+
+  const matches = allProducts.filter(p => p.name.toLowerCase().includes(v)).slice(0, 8);
+  sugg.innerHTML = '';
+  if (matches.length === 0) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = '+ Aggiungi "' + val.trim() + '"';
+    chip.onclick = () => selectProduct({
+      name: val.trim(),
+      category: { defaultUnit: 'Pezzi', availableUnits: ['Pezzi','Kg','g','Litri','Confezioni'], name: 'Altro' }
+    });
+    sugg.appendChild(chip);
+  } else {
+    matches.forEach(p => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = p.name;
+      chip.onclick = () => selectProduct(p);
+      sugg.appendChild(chip);
+    });
+  }
+}
+
+function selectProduct(p) {
+  selected = p;
+  currentQty = 1;
+  document.getElementById('sel-name').textContent = p.name;
+  const sel = document.getElementById('unit-sel');
+  sel.innerHTML = '';
+  const units = p.category?.availableUnits || ['Pezzi'];
+  units.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; sel.appendChild(o); });
+  sel.value = p.category?.defaultUnit || units[0];
+  document.getElementById('qty-val').textContent = currentQty;
+  document.getElementById('config-row').style.display = 'flex';
+  document.getElementById('suggestions').innerHTML = '';
+  document.getElementById('search').value = '';
+}
+
+function changeQty(delta) {
+  currentQty = Math.max(1, currentQty + delta);
+  document.getElementById('qty-val').textContent = currentQty;
+}
+
+async function addItem() {
+  if (!selected || !activeListId) return;
+  const unit = document.getElementById('unit-sel').value;
+  const body = {
+    productName: selected.name,
+    quantity: currentQty,
+    unit,
+    categoryName: selected.category?.name || ''
+  };
+  await apiFetch('/lists/' + activeListId + '/items', { method: 'POST', body: JSON.stringify(body) });
+  selected = null;
+  document.getElementById('config-row').style.display = 'none';
+  renderItems();
+}
+
+async function toggleItem(itemId) {
+  await apiFetch('/lists/' + activeListId + '/items/' + itemId + '/toggle', { method: 'PATCH' });
+  renderItems();
+}
+
+async function deleteItem(itemId) {
+  await apiFetch('/lists/' + activeListId + '/items/' + itemId, { method: 'DELETE' });
+  renderItems();
+}
+
+// Init
+loadProducts().then(loadLists);
+</script>
+</body>
+</html>

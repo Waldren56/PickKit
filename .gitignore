@@ -1,0 +1,30 @@
+# ===== Java / Maven =====
+backend/target/
+*.class
+*.jar
+*.war
+
+# ===== Node / React =====
+frontend-react/node_modules/
+frontend-react/dist/
+frontend/node_modules/
+frontend/dist/
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Env / Secrets =====
+.env
+*.env.local
+
+# ===== Zip file =====
+*.zip
