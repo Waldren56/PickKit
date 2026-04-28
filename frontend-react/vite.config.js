@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Pickit Shopping',
         short_name: 'Pickit',
         description: 'La tua Smart Shopping List',
-        theme_color: '#0f172a', /* the dark mode background */
-        background_color: '#0f172a',
+        theme_color: '#d97706', /* amber-600 */
+        background_color: '#fffef5', /* banana white */
         display: 'standalone',
         icons: [
           {

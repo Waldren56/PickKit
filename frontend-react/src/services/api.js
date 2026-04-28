@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api';
 
 class ApiError extends Error {
   constructor(message, status) {
@@ -34,27 +34,27 @@ async function fetchWithHandle(endpoint, options = {}) {
 
 export const api = {
   getProducts: () => fetchWithHandle('/products'),
-  
+
   getLists: () => fetchWithHandle('/lists'),
-  
+
   createList: (name) => fetchWithHandle('/lists', {
     method: 'POST',
     body: JSON.stringify({ name })
   }),
-  
+
   getListDetails: (id) => fetchWithHandle(`/lists/${id}`),
-  
+
   deleteList: (id) => fetchWithHandle(`/lists/${id}`, { method: 'DELETE' }),
-  
+
   addItemToList: (listId, data) => fetchWithHandle(`/lists/${listId}/items`, {
     method: 'POST',
     body: JSON.stringify(data)
   }),
-  
+
   toggleItemStatus: (listId, itemId) => fetchWithHandle(`/lists/${listId}/items/${itemId}/toggle`, {
     method: 'PATCH'
   }),
-  
+
   deleteItem: (listId, itemId) => fetchWithHandle(`/lists/${listId}/items/${itemId}`, {
     method: 'DELETE'
   }),
