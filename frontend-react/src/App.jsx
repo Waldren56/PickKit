@@ -13,6 +13,25 @@ function App() {
   const [selectedUnit, setSelectedUnit] = useState('');
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('Connecting...');
+  const [theme, setTheme] = useState(() => localStorage.getItem('pickit-theme') || 'system');
+
+  // Apply theme to document
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      const listener = (e) => root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener('change', listener);
+      return () => mq.removeEventListener('change', listener);
+    } else {
+      root.setAttribute('data-theme', theme);
+    }
+    localStorage.setItem('pickit-theme', theme);
+  }, [theme]);
+
+  const applyTheme = (t) => { setTheme(t); localStorage.setItem('pickit-theme', t); };
 
   // Load Initial Data
   useEffect(() => {
@@ -151,21 +170,26 @@ function App() {
   return (
     <div className="app-container">
       {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
-        <div style={{ fontSize: '2.5rem', marginRight: '1rem' }}>🛒</div>
+      <header style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem', gap: '12px' }}>
+        <div style={{ fontSize: '2.5rem' }}>🛒</div>
         <div style={{ flex: 1 }}>
           <h1 className="text-gradient" style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>Pickit</h1>
           <div style={{ color: 'var(--text-hint)', fontSize: '0.875rem' }}>Smart Shopping List</div>
         </div>
+        {/* Status badge */}
         <div style={{
-          fontSize: '0.75rem',
-          padding: '4px 10px',
-          borderRadius: '20px',
-          backgroundColor: status.includes('✓') ? 'rgba(20, 184, 166, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-          color: status.includes('✓') ? 'var(--accent-teal)' : 'var(--error-color)',
-          border: `1px solid ${status.includes('✓') ? 'rgba(20, 184, 166, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
+          fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px',
+          backgroundColor: status.includes('✓') ? 'var(--primary-glow)' : 'var(--error-bg)',
+          color: status.includes('✓') ? 'var(--primary-color)' : 'var(--error-color)',
+          border: `1px solid ${status.includes('✓') ? 'var(--surface-border)' : 'var(--error-border)'}`
         }}>
           {status}
+        </div>
+        {/* Theme toggle */}
+        <div className="theme-toggle">
+          <button id="theme-light" className={`theme-btn${theme === 'light' ? ' active' : ''}`} onClick={() => applyTheme('light')} title="Light">☀️</button>
+          <button id="theme-dark" className={`theme-btn${theme === 'dark' ? ' active' : ''}`} onClick={() => applyTheme('dark')} title="Dark">🌙</button>
+          <button id="theme-system" className={`theme-btn${theme === 'system' ? ' active' : ''}`} onClick={() => applyTheme('system')} title="System">💻</button>
         </div>
       </header>
 
@@ -354,7 +378,7 @@ function App() {
                     transition: 'background-color 0.2s',
                     opacity: item.done ? 0.6 : 1
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--item-hover-bg)'}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   {/* Custom Checkbox */}
