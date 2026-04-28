@@ -14,6 +14,7 @@ public class ListItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shopping_list_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private ShoppingList shoppingList;
 
     @NotBlank
@@ -34,19 +35,58 @@ public class ListItem {
     @Column(name = "category_name")
     private String categoryName;
 
-    public ListItem() {}
+    public ListItem() {
+    }
 
-    public Long getId() { return id; }
-    public ShoppingList getShoppingList() { return shoppingList; }
-    public void setShoppingList(ShoppingList shoppingList) { this.shoppingList = shoppingList; }
-    public String getProductName() { return productName; }
-    public void setProductName(String productName) { this.productName = productName; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public String getUnit() { return unit; }
-    public void setUnit(String unit) { this.unit = unit; }
-    public boolean isDone() { return done; }
-    public void setDone(boolean done) { this.done = done; }
-    public String getCategoryName() { return categoryName; }
-    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public Long getId() {
+        return id;
+    }
+
+    public ShoppingList getShoppingList() {
+        return shoppingList;
+    }
+
+    public void setShoppingList(ShoppingList shoppingList) {
+        this.shoppingList = shoppingList;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public void setDone(boolean done) {
+        this.done = done;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
 }
